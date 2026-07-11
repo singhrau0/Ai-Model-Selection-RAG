@@ -9,7 +9,7 @@ EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 class Vectorizer:
     def __init__(self):
         pass
-    def hfembedder(self,chunks):
+    def hfembedder(self,chunks = None):
         embedding_model = HuggingFaceEmbeddings(
         model_name=EMBEDDING_MODEL
         )
