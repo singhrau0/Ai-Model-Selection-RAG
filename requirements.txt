@@ -1,5 +1,7 @@
 langchain
 langchain-community
+langchain-classic
+langchain-experimental
 langchain-text-splitters
 langchain-huggingface
 langchain-chroma
@@ -10,3 +12,8 @@ python-dotenv
 pypdf
 docx2txt
 google-genai
+openai
+ollama
+rank-bm25
+scikit-learn
+networkx

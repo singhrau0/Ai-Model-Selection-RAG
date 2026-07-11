@@ -1,42 +1,55 @@
-import os
+"""Interactive RAG entry point.
+
+Examples:
+    python generation.py --provider local --retrieval graph_hybrid
+    python generation.py --provider gemini --retrieval hybrid
+"""
+
+import argparse
+
 from dotenv import load_dotenv
-from google import genai
+
+from src.generators import GeminiGenerator, LocalLlamaGenerator, OpenAIGenerator
+from src.retriever import RetrieverSuite
 from src.vectorization import Vectorizer
-from src.retriever import mainretriever
-vc =Vectorizer()
-vector_db = vc.hfembedder()
-mnr = mainretriever()
-load_dotenv()
-api_key = os.getenv("GEMINI_API_KEY")
-client = genai.Client(api_key=api_key)
-while True:
-    question = input("\nQuestion: ").strip()
 
-    if question.lower() in ["exit", "quit"]:
-        print("Stopped.")
-        break
-    context = mnr.Topkretriever(question,vector_db,3)
-    sysprompt = f'''
-        You are as Senior Ai Model Advisor 
-        You have to give the response in more technichal
-        Response by using the Context effeciently
-        this is user query {question} and this is 
-        context {context} you have to give response in
-        small General Explanation with some Key important 
-        Details
-        '''
-    response = client.models.generate_content(
-        model="gemini-3.1-flash-lite",
-        contents=sysprompt,
+
+def make_generator(provider: str):
+    return {
+        "gemini": GeminiGenerator,
+        "openai": OpenAIGenerator,
+        "local": LocalLlamaGenerator,
+    }[provider]()
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Ask the AI model knowledge base")
+    parser.add_argument("--provider", choices=["gemini", "openai", "local"], default="local")
+    parser.add_argument(
+        "--retrieval",
+        choices=["dense", "sparse", "mmr", "hybrid", "graph", "graph_hybrid"],
+        default="graph_hybrid",
     )
-    print("\nGemini Response:\n")
-    print(response.text)
+    parser.add_argument("--top-k", type=int, default=5)
+    args = parser.parse_args()
+
+    load_dotenv()
+    vector_db = Vectorizer().hfembedder()
+    retriever = RetrieverSuite(vector_db)
+    generator = make_generator(args.provider)
+
+    while True:
+        question = input("\nQuestion: ").strip()
+        if question.lower() in {"exit", "quit"}:
+            break
+        results = retriever.retrieve(question, k=args.top_k, method=args.retrieval)
+        context = "\n\n".join(document.page_content for document in results)
+        print(f"\n{args.provider.title()} response:\n{generator.generate(question, context)}")
+        print("\nSources:")
+        for document in results:
+            metadata = document.metadata
+            print(f"- {metadata.get('source', 'unknown')} page {metadata.get('page', '-')}")
 
 
-
-
-
-
-
-
-
+if __name__ == "__main__":
+    main()
