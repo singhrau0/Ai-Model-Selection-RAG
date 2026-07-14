@@ -17,3 +17,5 @@ ollama
 rank-bm25
 scikit-learn
 networkx
+langchain-google-genai
+langgraph

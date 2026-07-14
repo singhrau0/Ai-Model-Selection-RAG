@@ -1,0 +1,3339 @@
+{
+  "document_control": {
+    "title": "ClassicModels MySQL Metadata for RAG-Based Natural-Language-to-SQL",
+    "metadata_version": "1.0.0",
+    "generated_on": "2026-07-14",
+    "canonical_database": "classicmodels",
+    "source_schema_version": "3.2",
+    "intended_sql_dialect": "MySQL",
+    "intended_generation_model": "Gemini 3.1 Flash-Lite",
+    "purpose": "Provide complete schema, semantic, relationship, metric, query-planning, and retrieval metadata so a RAG pipeline can retrieve the right context before generating SQL.",
+    "consistency_statement": "The JSON, TXT, DOCX, and PDF deliverables are generated from this same canonical metadata object.",
+    "scope": "Read/query metadata only. It does not contain application code or executable SQL examples."
+  },
+  "source_references": [
+    {
+      "name": "MySQLTutorial ClassicModels overview",
+      "url": "https://www.mysqltutorial.org/getting-started-with-mysql/mysql-sample-database/",
+      "used_for": "Database purpose and official list of eight tables."
+    },
+    {
+      "name": "ClassicModels SQL dump, version 3.2",
+      "url": "https://gist.github.com/prof3ssorSt3v3/796ebc82fd8eeb0b697effaa1e86c3a6",
+      "used_for": "Exact table definitions, column types, indexes, foreign keys, representative values, and source version notes."
+    },
+    {
+      "name": "ClassicModels practice reference",
+      "url": "https://www.scribd.com/document/527411619/CECS323ClassicModelsPracticeSQL",
+      "used_for": "Standard row counts for all eight tables."
+    },
+    {
+      "name": "ClassicModels database description",
+      "url": "https://www.richardtwatson.com/open/Reader/ClassicModels.pdf",
+      "used_for": "Business interpretation of product lines and pricing fields."
+    }
+  ],
+  "database_overview": {
+    "business_domain": "Fictional retailer of scale models of classic cars and other vehicles.",
+    "business_processes_covered": [
+      "Product catalog and product-line classification",
+      "Inventory snapshot",
+      "Customers and assigned sales representatives",
+      "Sales orders and order line items",
+      "Customer payments",
+      "Employees, reporting hierarchy, and sales offices"
+    ],
+    "storage_engine": "InnoDB",
+    "character_set": "utf8",
+    "collation": "utf8_general_ci",
+    "table_count": 8,
+    "column_count": 59,
+    "standard_total_row_count": 3864,
+    "standard_row_counts": {
+      "productlines": 7,
+      "products": 110,
+      "employees": 23,
+      "offices": 7,
+      "customers": 122,
+      "orders": 326,
+      "orderdetails": 2996,
+      "payments": 273
+    },
+    "historical_time_span": "Order and payment activity is historical sample data mainly covering 2003 through 2005.",
+    "identifier_conventions": [
+      "Use exact lower-case table names from the schema.",
+      "Use exact camelCase column names from the schema.",
+      "Identifiers such as productCode, officeCode, postalCode, phone, extension, and checkNumber are text, even when they contain digits.",
+      "No table declares AUTO_INCREMENT in the source schema."
+    ],
+    "currency_note": "No currency-code column exists. Monetary columns are normally treated as one common currency in the sample database, but the SQL generator must not label the currency unless the application defines it.",
+    "major_absences": [
+      "No order-level total column",
+      "No tax, shipping fee, return, refund, or coupon table",
+      "No direct payment-to-order allocation",
+      "No inventory movement history or historical stock snapshots",
+      "No supplier master table beyond productVendor text",
+      "No customer territory column",
+      "No created-at or updated-at timestamps"
+    ]
+  },
+  "semantic_entity_map": [
+    {
+      "entity": "Customer",
+      "primary_table": "customers",
+      "identifier": "customerNumber",
+      "display_name": "customerName"
+    },
+    {
+      "entity": "Customer contact",
+      "primary_table": "customers",
+      "identifier": "customerNumber",
+      "display_name": "contactFirstName + contactLastName"
+    },
+    {
+      "entity": "Sales representative",
+      "primary_table": "employees",
+      "identifier": "employeeNumber",
+      "display_name": "firstName + lastName"
+    },
+    {
+      "entity": "Manager",
+      "primary_table": "employees",
+      "identifier": "employeeNumber",
+      "display_name": "firstName + lastName",
+      "relationship": "employees.reportsTo references employees.employeeNumber"
+    },
+    {
+      "entity": "Office",
+      "primary_table": "offices",
+      "identifier": "officeCode",
+      "display_name": "city"
+    },
+    {
+      "entity": "Order",
+      "primary_table": "orders",
+      "identifier": "orderNumber",
+      "display_name": "orderNumber"
+    },
+    {
+      "entity": "Order line",
+      "primary_table": "orderdetails",
+      "identifier": "orderNumber + productCode",
+      "display_name": "productCode within orderNumber"
+    },
+    {
+      "entity": "Product",
+      "primary_table": "products",
+      "identifier": "productCode",
+      "display_name": "productName"
+    },
+    {
+      "entity": "Product line",
+      "primary_table": "productlines",
+      "identifier": "productLine",
+      "display_name": "productLine"
+    },
+    {
+      "entity": "Payment",
+      "primary_table": "payments",
+      "identifier": "customerNumber + checkNumber",
+      "display_name": "checkNumber"
+    }
+  ],
+  "tables": [
+    {
+      "table_name": "offices",
+      "business_aliases": [
+        "office",
+        "branch",
+        "sales office",
+        "location",
+        "regional office"
+      ],
+      "purpose": "Stores sales-office location and territory information.",
+      "row_grain": "One row per sales office.",
+      "standard_row_count": 7,
+      "primary_key": [
+        "officeCode"
+      ],
+      "foreign_keys": [],
+      "indexed_columns": [
+        "PRIMARY KEY (officeCode)"
+      ],
+      "common_query_intents": [
+        "office lookup",
+        "office geography",
+        "employees by office",
+        "office performance",
+        "territory analysis"
+      ],
+      "common_filters": [
+        "officeCode",
+        "city",
+        "country",
+        "territory"
+      ],
+      "common_groupings": [
+        "city",
+        "country",
+        "territory"
+      ],
+      "table_notes": [
+        "Office performance requires joining offices to employees, then usually customers, orders, and orderdetails.",
+        "Territory is an office attribute, not a customer attribute.",
+        "officeCode is text even though standard values look numeric."
+      ],
+      "columns": [
+        {
+          "name": "officeCode",
+          "data_type": "varchar(10)",
+          "nullable": false,
+          "key_role": "Primary key",
+          "business_meaning": "Unique office identifier.",
+          "semantic_role": "identifier",
+          "synonyms_and_user_phrases": [
+            "office id",
+            "branch code",
+            "office number"
+          ],
+          "representative_values": [
+            "1",
+            "4",
+            "7"
+          ],
+          "aggregation_rule": "Count distinct for office counts; do not sum.",
+          "filter_guidance": "Use exact matching unless the user provides only a partial code.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Join to employees.officeCode.",
+          "cautions": []
+        },
+        {
+          "name": "city",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "City where the office is located.",
+          "semantic_role": "geography",
+          "synonyms_and_user_phrases": [
+            "office city",
+            "branch city",
+            "location city"
+          ],
+          "representative_values": [
+            "San Francisco",
+            "Paris",
+            "Tokyo"
+          ],
+          "aggregation_rule": "Group or count; do not sum.",
+          "filter_guidance": "Use case-insensitive text matching and normalize common city abbreviations only when unambiguous.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "phone",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Office telephone number.",
+          "semantic_role": "contact detail",
+          "synonyms_and_user_phrases": [
+            "office phone",
+            "branch phone",
+            "telephone"
+          ],
+          "representative_values": [
+            "+1 650 219 4782",
+            "+33 14 723 4404"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Use exact or contains matching; preserve punctuation and country codes.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": [
+            "Text identifier; never cast to a number for arithmetic."
+          ]
+        },
+        {
+          "name": "addressLine1",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Primary street-address line for the office.",
+          "semantic_role": "address",
+          "synonyms_and_user_phrases": [
+            "street address",
+            "office address",
+            "address line 1"
+          ],
+          "representative_values": [
+            "100 Market Street",
+            "43 Rue Jouffroy D'abbans"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Use text search for address lookup.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "addressLine2",
+          "data_type": "varchar(50)",
+          "nullable": true,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Optional secondary office-address line such as suite or floor.",
+          "semantic_role": "address",
+          "synonyms_and_user_phrases": [
+            "suite",
+            "floor",
+            "address line 2"
+          ],
+          "representative_values": [
+            "Suite 300",
+            "Floor #2"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Use IS NULL semantics for offices without a second address line.",
+          "null_meaning": "No secondary address line is recorded.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "state",
+          "data_type": "varchar(50)",
+          "nullable": true,
+          "key_role": "Non-key attribute",
+          "business_meaning": "State, province, prefecture, or comparable administrative area.",
+          "semantic_role": "geography",
+          "synonyms_and_user_phrases": [
+            "state",
+            "province",
+            "region"
+          ],
+          "representative_values": [
+            "CA",
+            "MA",
+            "Chiyoda-Ku"
+          ],
+          "aggregation_rule": "Group or count; do not sum.",
+          "filter_guidance": "Do not assume NULL means missing data; many countries do not use this field in the sample.",
+          "null_meaning": "Administrative subdivision is not recorded or not applicable.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "country",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Country of the office.",
+          "semantic_role": "geography",
+          "synonyms_and_user_phrases": [
+            "office country",
+            "nation"
+          ],
+          "representative_values": [
+            "USA",
+            "France",
+            "Japan",
+            "Australia",
+            "UK"
+          ],
+          "aggregation_rule": "Group, count, or count distinct.",
+          "filter_guidance": "Use exact normalized country values from the data; do not silently merge UK and USA-style abbreviations.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "postalCode",
+          "data_type": "varchar(15)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Office postal or ZIP code.",
+          "semantic_role": "geography identifier",
+          "synonyms_and_user_phrases": [
+            "postal code",
+            "zip code",
+            "postcode"
+          ],
+          "representative_values": [
+            "94080",
+            "02107",
+            "EC2N 1HN"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Treat as text and preserve leading zeros and spaces.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": [
+            "Never perform numeric ranges unless explicitly requested and semantically valid."
+          ]
+        },
+        {
+          "name": "territory",
+          "data_type": "varchar(10)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Office sales territory label.",
+          "semantic_role": "organizational geography",
+          "synonyms_and_user_phrases": [
+            "territory",
+            "sales region",
+            "business region"
+          ],
+          "representative_values": [
+            "NA",
+            "EMEA",
+            "Japan",
+            "APAC"
+          ],
+          "aggregation_rule": "Group or count.",
+          "filter_guidance": "Use exact values. Note that Japan is stored as its own territory label rather than APAC.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        }
+      ]
+    },
+    {
+      "table_name": "employees",
+      "business_aliases": [
+        "employee",
+        "staff",
+        "sales rep",
+        "representative",
+        "manager",
+        "executive"
+      ],
+      "purpose": "Stores employees, office assignments, job titles, and the management reporting hierarchy.",
+      "row_grain": "One row per employee.",
+      "standard_row_count": 23,
+      "primary_key": [
+        "employeeNumber"
+      ],
+      "foreign_keys": [
+        {
+          "columns": [
+            "officeCode"
+          ],
+          "references": "offices.officeCode",
+          "optional": false
+        },
+        {
+          "columns": [
+            "reportsTo"
+          ],
+          "references": "employees.employeeNumber",
+          "optional": true,
+          "relationship_type": "self-reference"
+        }
+      ],
+      "indexed_columns": [
+        "PRIMARY KEY (employeeNumber)",
+        "INDEX (reportsTo)",
+        "INDEX (officeCode)"
+      ],
+      "common_query_intents": [
+        "employee lookup",
+        "sales representative lookup",
+        "manager hierarchy",
+        "direct reports",
+        "employees by office",
+        "employee sales performance"
+      ],
+      "common_filters": [
+        "employeeNumber",
+        "firstName",
+        "lastName",
+        "jobTitle",
+        "officeCode",
+        "reportsTo"
+      ],
+      "common_groupings": [
+        "jobTitle",
+        "officeCode",
+        "reportsTo"
+      ],
+      "table_notes": [
+        "The employee hierarchy is represented by reportsTo and may require repeated self-joins or recursive logic for multiple levels.",
+        "Only employees referenced by customers.salesRepEmployeeNumber are customer-facing assigned representatives.",
+        "Employee performance is not stored directly; it is derived through assigned customers and their orders."
+      ],
+      "columns": [
+        {
+          "name": "employeeNumber",
+          "data_type": "int(11)",
+          "nullable": false,
+          "key_role": "Primary key",
+          "business_meaning": "Unique employee identifier.",
+          "semantic_role": "identifier",
+          "synonyms_and_user_phrases": [
+            "employee id",
+            "staff id",
+            "rep number",
+            "sales rep id"
+          ],
+          "representative_values": [
+            1002,
+            1370,
+            1702
+          ],
+          "aggregation_rule": "Count distinct for employee counts; do not sum.",
+          "filter_guidance": "Use exact numeric matching.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Join from customers.salesRepEmployeeNumber or employees.reportsTo.",
+          "cautions": []
+        },
+        {
+          "name": "lastName",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Employee family name.",
+          "semantic_role": "person name",
+          "synonyms_and_user_phrases": [
+            "surname",
+            "family name",
+            "employee last name"
+          ],
+          "representative_values": [
+            "Murphy",
+            "Patterson",
+            "Hernandez"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Use case-insensitive text matching; combine with firstName when names may be ambiguous.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "firstName",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Employee given name.",
+          "semantic_role": "person name",
+          "synonyms_and_user_phrases": [
+            "given name",
+            "employee first name"
+          ],
+          "representative_values": [
+            "Diane",
+            "Mary",
+            "Gerard"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Use case-insensitive text matching; combine with lastName for person lookup.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "extension",
+          "data_type": "varchar(10)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Internal telephone extension.",
+          "semantic_role": "contact detail",
+          "synonyms_and_user_phrases": [
+            "extension",
+            "phone extension",
+            "ext"
+          ],
+          "representative_values": [
+            "x5800",
+            "x2028"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Treat as text; preserve the leading x.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": [
+            "Not a numeric measure."
+          ]
+        },
+        {
+          "name": "email",
+          "data_type": "varchar(100)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Employee email address.",
+          "semantic_role": "contact detail",
+          "synonyms_and_user_phrases": [
+            "email",
+            "employee email",
+            "mail address"
+          ],
+          "representative_values": [
+            "dmurphy@classicmodelcars.com"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Use exact or case-insensitive matching.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "officeCode",
+          "data_type": "varchar(10)",
+          "nullable": false,
+          "key_role": "Foreign key",
+          "business_meaning": "Office to which the employee is assigned.",
+          "semantic_role": "relationship key",
+          "synonyms_and_user_phrases": [
+            "office id",
+            "branch code",
+            "employee office"
+          ],
+          "representative_values": [
+            "1",
+            "4",
+            "7"
+          ],
+          "aggregation_rule": "Group or count by office; do not sum.",
+          "filter_guidance": "Filter by exact officeCode or join to offices for city/country/territory.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Join to offices.officeCode.",
+          "cautions": []
+        },
+        {
+          "name": "reportsTo",
+          "data_type": "int(11)",
+          "nullable": true,
+          "key_role": "Self-referencing foreign key",
+          "business_meaning": "Employee number of the employee’s manager.",
+          "semantic_role": "hierarchy key",
+          "synonyms_and_user_phrases": [
+            "manager id",
+            "supervisor id",
+            "reports to",
+            "boss"
+          ],
+          "representative_values": [
+            1002,
+            1056,
+            1102
+          ],
+          "aggregation_rule": "Do not sum. Count direct reports by grouping on this column.",
+          "filter_guidance": "Use NULL to identify the top-level employee.",
+          "null_meaning": "Employee has no recorded manager; in the standard data this identifies the President.",
+          "join_guidance": "Self-join to employees.employeeNumber to retrieve manager details.",
+          "cautions": []
+        },
+        {
+          "name": "jobTitle",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Employee role or job title.",
+          "semantic_role": "organizational category",
+          "synonyms_and_user_phrases": [
+            "role",
+            "designation",
+            "position",
+            "job"
+          ],
+          "representative_values": [
+            "President",
+            "VP Sales",
+            "VP Marketing",
+            "Sales Manager (APAC)",
+            "Sale Manager (EMEA)",
+            "Sales Manager (NA)",
+            "Sales Rep"
+          ],
+          "aggregation_rule": "Group or count.",
+          "filter_guidance": "Use exact stored titles when possible. Preserve the source-data spelling “Sale Manager (EMEA)”.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        }
+      ]
+    },
+    {
+      "table_name": "customers",
+      "business_aliases": [
+        "customer",
+        "client",
+        "account",
+        "buyer",
+        "company"
+      ],
+      "purpose": "Stores customer organizations, contact information, geography, assigned sales representative, and credit limit.",
+      "row_grain": "One row per customer organization.",
+      "standard_row_count": 122,
+      "primary_key": [
+        "customerNumber"
+      ],
+      "foreign_keys": [
+        {
+          "columns": [
+            "salesRepEmployeeNumber"
+          ],
+          "references": "employees.employeeNumber",
+          "optional": true
+        }
+      ],
+      "indexed_columns": [
+        "PRIMARY KEY (customerNumber)",
+        "INDEX (salesRepEmployeeNumber)"
+      ],
+      "common_query_intents": [
+        "customer lookup",
+        "customer geography",
+        "customer credit",
+        "assigned representative",
+        "customers with or without orders",
+        "customer value",
+        "customer payment history"
+      ],
+      "common_filters": [
+        "customerNumber",
+        "customerName",
+        "contact names",
+        "city",
+        "state",
+        "country",
+        "salesRepEmployeeNumber",
+        "creditLimit"
+      ],
+      "common_groupings": [
+        "country",
+        "city",
+        "salesRepEmployeeNumber",
+        "creditLimit bands"
+      ],
+      "table_notes": [
+        "Customer organization and customer contact are represented in the same row.",
+        "Customer sales and payments require separate joins; avoid multiplying totals by joining orders and payments at detail level in one aggregation.",
+        "Some customers are unassigned to a sales representative and can be lost by inner joins."
+      ],
+      "columns": [
+        {
+          "name": "customerNumber",
+          "data_type": "int(11)",
+          "nullable": false,
+          "key_role": "Primary key",
+          "business_meaning": "Unique customer identifier.",
+          "semantic_role": "identifier",
+          "synonyms_and_user_phrases": [
+            "customer id",
+            "client id",
+            "account number"
+          ],
+          "representative_values": [
+            103,
+            141,
+            496
+          ],
+          "aggregation_rule": "Count distinct for customer counts; do not sum.",
+          "filter_guidance": "Use exact numeric matching.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Join to orders.customerNumber and payments.customerNumber.",
+          "cautions": []
+        },
+        {
+          "name": "customerName",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Customer company or organization name.",
+          "semantic_role": "entity name",
+          "synonyms_and_user_phrases": [
+            "customer name",
+            "client name",
+            "company name",
+            "account name"
+          ],
+          "representative_values": [
+            "Atelier graphique",
+            "Euro+ Shopping Channel",
+            "Kelly's Gift Shop"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Use case-insensitive exact or contains matching; prefer exact match when a full name is provided.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "contactLastName",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Family name of the customer’s primary contact person.",
+          "semantic_role": "person name",
+          "synonyms_and_user_phrases": [
+            "contact surname",
+            "contact last name"
+          ],
+          "representative_values": [
+            "Schmitt",
+            "Freyre",
+            "Snowden"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Combine with contactFirstName for contact-person lookup.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "contactFirstName",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Given name of the customer’s primary contact person.",
+          "semantic_role": "person name",
+          "synonyms_and_user_phrases": [
+            "contact first name",
+            "contact given name"
+          ],
+          "representative_values": [
+            "Carine",
+            "Diego",
+            "Tony"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Trim whitespace when displaying or comparing because some sample values contain trailing spaces.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "phone",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Customer telephone number.",
+          "semantic_role": "contact detail",
+          "synonyms_and_user_phrases": [
+            "customer phone",
+            "client telephone",
+            "contact number"
+          ],
+          "representative_values": [
+            "40.32.2555",
+            "7025551838",
+            "+64 9 5555500"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Treat as text; punctuation and country-code formats vary.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "addressLine1",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Primary customer street-address line.",
+          "semantic_role": "address",
+          "synonyms_and_user_phrases": [
+            "customer address",
+            "street address",
+            "address line 1"
+          ],
+          "representative_values": [
+            "54, rue Royale",
+            "636 St Kilda Road"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Use text matching only when needed.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "addressLine2",
+          "data_type": "varchar(50)",
+          "nullable": true,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Optional secondary address line.",
+          "semantic_role": "address",
+          "synonyms_and_user_phrases": [
+            "suite",
+            "floor",
+            "address line 2"
+          ],
+          "representative_values": [
+            "Level 3",
+            "Suite 400"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Use IS NULL semantics to find customers without a second line.",
+          "null_meaning": "No secondary address line is recorded.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "city",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Customer city.",
+          "semantic_role": "geography",
+          "synonyms_and_user_phrases": [
+            "customer city",
+            "client city"
+          ],
+          "representative_values": [
+            "Nantes",
+            "Las Vegas",
+            "Singapore"
+          ],
+          "aggregation_rule": "Group, count, or count distinct.",
+          "filter_guidance": "Use case-insensitive text matching; normalize abbreviations only when unambiguous.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "state",
+          "data_type": "varchar(50)",
+          "nullable": true,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Customer state, province, or comparable subdivision.",
+          "semantic_role": "geography",
+          "synonyms_and_user_phrases": [
+            "state",
+            "province",
+            "region"
+          ],
+          "representative_values": [
+            "NV",
+            "Victoria",
+            "Osaka"
+          ],
+          "aggregation_rule": "Group or count.",
+          "filter_guidance": "NULL is common for countries where this field is not used in the sample.",
+          "null_meaning": "Subdivision is not recorded or not applicable.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "postalCode",
+          "data_type": "varchar(15)",
+          "nullable": true,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Customer postal or ZIP code.",
+          "semantic_role": "geography identifier",
+          "synonyms_and_user_phrases": [
+            "postal code",
+            "zip code",
+            "postcode"
+          ],
+          "representative_values": [
+            "44000",
+            "83030",
+            "EC2 5NT"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Treat as text and preserve leading zeros, spaces, and prefixes.",
+          "null_meaning": "Postal code is not recorded.",
+          "join_guidance": "Not a join key.",
+          "cautions": [
+            "Never cast to numeric for ordinary filtering."
+          ]
+        },
+        {
+          "name": "country",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Customer country.",
+          "semantic_role": "geography",
+          "synonyms_and_user_phrases": [
+            "customer country",
+            "client nation",
+            "market country"
+          ],
+          "representative_values": [
+            "France",
+            "USA",
+            "Australia",
+            "Spain"
+          ],
+          "aggregation_rule": "Group, count, or count distinct.",
+          "filter_guidance": "Use exact stored values; trim unexpected trailing spaces when comparing or displaying.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "salesRepEmployeeNumber",
+          "data_type": "int(11)",
+          "nullable": true,
+          "key_role": "Foreign key",
+          "business_meaning": "Employee assigned as the customer’s sales representative.",
+          "semantic_role": "relationship key",
+          "synonyms_and_user_phrases": [
+            "sales rep",
+            "account manager",
+            "representative id",
+            "employee assigned"
+          ],
+          "representative_values": [
+            1165,
+            1370,
+            1612
+          ],
+          "aggregation_rule": "Count customers per representative; do not sum.",
+          "filter_guidance": "Use NULL to identify unassigned customers.",
+          "null_meaning": "Customer has no assigned sales representative.",
+          "join_guidance": "Join to employees.employeeNumber.",
+          "cautions": []
+        },
+        {
+          "name": "creditLimit",
+          "data_type": "decimal(10,2)",
+          "nullable": true,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Customer’s approved credit limit.",
+          "semantic_role": "monetary measure",
+          "synonyms_and_user_phrases": [
+            "credit limit",
+            "credit ceiling",
+            "approved credit"
+          ],
+          "representative_values": [
+            "21000.00",
+            "227600.00",
+            "0.00"
+          ],
+          "aggregation_rule": "May be summed or averaged only when the business question asks about total or average approved credit; otherwise display per customer.",
+          "filter_guidance": "Use numeric comparisons. Distinguish zero from NULL.",
+          "null_meaning": "Credit limit is not recorded.",
+          "join_guidance": "Not a join key.",
+          "cautions": [
+            "Credit limit is not customer balance, revenue, payment total, or available credit."
+          ]
+        }
+      ]
+    },
+    {
+      "table_name": "payments",
+      "business_aliases": [
+        "payment",
+        "receipt",
+        "cash received",
+        "check",
+        "customer payment"
+      ],
+      "purpose": "Stores payments received from customers.",
+      "row_grain": "One row per customer payment/check transaction.",
+      "standard_row_count": 273,
+      "primary_key": [
+        "customerNumber",
+        "checkNumber"
+      ],
+      "foreign_keys": [
+        {
+          "columns": [
+            "customerNumber"
+          ],
+          "references": "customers.customerNumber",
+          "optional": false
+        }
+      ],
+      "indexed_columns": [
+        "PRIMARY KEY (customerNumber, checkNumber)"
+      ],
+      "common_query_intents": [
+        "payment history",
+        "payments by customer",
+        "payments by period",
+        "total paid",
+        "average payment",
+        "customer payment behavior"
+      ],
+      "common_filters": [
+        "customerNumber",
+        "checkNumber",
+        "paymentDate",
+        "amount"
+      ],
+      "common_groupings": [
+        "customerNumber",
+        "payment year/month",
+        "amount bands"
+      ],
+      "table_notes": [
+        "There is no orderNumber in payments, so direct payment-to-order matching is impossible from this schema alone.",
+        "When combining customer order totals and payment totals, aggregate each side separately by customer before joining.",
+        "A payment may cover multiple orders or account-level balances; do not invent allocation logic."
+      ],
+      "columns": [
+        {
+          "name": "customerNumber",
+          "data_type": "int(11)",
+          "nullable": false,
+          "key_role": "Primary-key component and foreign key",
+          "business_meaning": "Customer who made the payment.",
+          "semantic_role": "identifier and relationship key",
+          "synonyms_and_user_phrases": [
+            "customer id",
+            "payer",
+            "account number"
+          ],
+          "representative_values": [
+            103,
+            141,
+            496
+          ],
+          "aggregation_rule": "Group payment measures by customer; do not sum the identifier.",
+          "filter_guidance": "Use exact customer number or join to customers for names.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Join to customers.customerNumber.",
+          "cautions": []
+        },
+        {
+          "name": "checkNumber",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Primary-key component",
+          "business_meaning": "Payment/check reference identifier.",
+          "semantic_role": "transaction identifier",
+          "synonyms_and_user_phrases": [
+            "check number",
+            "payment reference",
+            "receipt number",
+            "transaction reference"
+          ],
+          "representative_values": [
+            "HQ336336",
+            "JM555205",
+            "EU531600"
+          ],
+          "aggregation_rule": "Count or count distinct; do not sum.",
+          "filter_guidance": "Use exact text matching.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": [
+            "Not guaranteed to be globally unique without customerNumber because the primary key is composite."
+          ]
+        },
+        {
+          "name": "paymentDate",
+          "data_type": "date",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Date the payment was received or recorded.",
+          "semantic_role": "date",
+          "synonyms_and_user_phrases": [
+            "payment date",
+            "receipt date",
+            "paid on"
+          ],
+          "representative_values": [
+            "2003-06-05",
+            "2004-10-19",
+            "2005-05-25"
+          ],
+          "aggregation_rule": "Group by year, quarter, month, or date.",
+          "filter_guidance": "Use this date for cash-receipt timing, not orderDate or shippedDate.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "amount",
+          "data_type": "decimal(10,2)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Amount of the customer payment.",
+          "semantic_role": "monetary additive measure",
+          "synonyms_and_user_phrases": [
+            "payment amount",
+            "amount paid",
+            "cash received",
+            "receipt value"
+          ],
+          "representative_values": [
+            "6066.78",
+            "14571.44",
+            "52166.00"
+          ],
+          "aggregation_rule": "Additive across payment rows. Sum for total payments; average for average payment size.",
+          "filter_guidance": "Use numeric comparisons and aggregate after selecting the correct customer/date scope.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": [
+            "Currency code is not stored.",
+            "Payments are not linked to individual orders."
+          ]
+        }
+      ]
+    },
+    {
+      "table_name": "productlines",
+      "business_aliases": [
+        "product line",
+        "category",
+        "product category",
+        "vehicle category"
+      ],
+      "purpose": "Stores the seven product categories and their descriptive content.",
+      "row_grain": "One row per product line/category.",
+      "standard_row_count": 7,
+      "primary_key": [
+        "productLine"
+      ],
+      "foreign_keys": [],
+      "indexed_columns": [
+        "PRIMARY KEY (productLine)"
+      ],
+      "common_query_intents": [
+        "product-line lookup",
+        "category descriptions",
+        "products by category",
+        "sales by product line"
+      ],
+      "common_filters": [
+        "productLine",
+        "textDescription"
+      ],
+      "common_groupings": [
+        "productLine"
+      ],
+      "table_notes": [
+        "The exact seven categories are Classic Cars, Vintage Cars, Motorcycles, Trucks and Buses, Planes, Ships, and Trains.",
+        "Use products for product-level price, vendor, scale, and inventory analysis."
+      ],
+      "columns": [
+        {
+          "name": "productLine",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Primary key",
+          "business_meaning": "Name of the product category.",
+          "semantic_role": "category identifier",
+          "synonyms_and_user_phrases": [
+            "product line",
+            "category",
+            "vehicle type"
+          ],
+          "representative_values": [
+            "Classic Cars",
+            "Vintage Cars",
+            "Motorcycles",
+            "Trucks and Buses",
+            "Planes",
+            "Ships",
+            "Trains"
+          ],
+          "aggregation_rule": "Group or count. Do not sum.",
+          "filter_guidance": "Use exact category values or safe case-insensitive matching.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Join to products.productLine.",
+          "cautions": []
+        },
+        {
+          "name": "textDescription",
+          "data_type": "varchar(4000)",
+          "nullable": true,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Plain-text description of the product line.",
+          "semantic_role": "unstructured descriptive text",
+          "synonyms_and_user_phrases": [
+            "category description",
+            "product-line text",
+            "description"
+          ],
+          "representative_values": [
+            "Long descriptive paragraph"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Use full-text or contains matching only for semantic description questions.",
+          "null_meaning": "No plain-text description is stored.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "htmlDescription",
+          "data_type": "mediumtext",
+          "nullable": true,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Optional HTML-formatted product-line description.",
+          "semantic_role": "unstructured HTML text",
+          "synonyms_and_user_phrases": [
+            "HTML description",
+            "web description"
+          ],
+          "representative_values": [
+            "NULL in the standard dataset"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Normally exclude from analytics unless the user explicitly asks for web/HTML content.",
+          "null_meaning": "No HTML description is stored in the standard dataset.",
+          "join_guidance": "Not a join key.",
+          "cautions": [
+            "May contain markup rather than clean business text."
+          ]
+        },
+        {
+          "name": "image",
+          "data_type": "mediumblob",
+          "nullable": true,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Optional binary image for the product line.",
+          "semantic_role": "binary content",
+          "synonyms_and_user_phrases": [
+            "image",
+            "picture",
+            "category image"
+          ],
+          "representative_values": [
+            "NULL in the standard dataset"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Do not select by default; retrieve only when binary content is explicitly requested.",
+          "null_meaning": "No image is stored in the standard dataset.",
+          "join_guidance": "Not a join key.",
+          "cautions": [
+            "Not suitable for ordinary text-to-SQL result display."
+          ]
+        }
+      ]
+    },
+    {
+      "table_name": "products",
+      "business_aliases": [
+        "product",
+        "model",
+        "item",
+        "SKU",
+        "catalog item"
+      ],
+      "purpose": "Stores the product catalog, product-line membership, model scale, vendor, description, stock quantity, cost, and list price.",
+      "row_grain": "One row per product/model SKU.",
+      "standard_row_count": 110,
+      "primary_key": [
+        "productCode"
+      ],
+      "foreign_keys": [
+        {
+          "columns": [
+            "productLine"
+          ],
+          "references": "productlines.productLine",
+          "optional": false
+        }
+      ],
+      "indexed_columns": [
+        "PRIMARY KEY (productCode)",
+        "INDEX (productLine)"
+      ],
+      "common_query_intents": [
+        "product lookup",
+        "catalog search",
+        "inventory",
+        "pricing",
+        "margin potential",
+        "products by vendor",
+        "products by scale",
+        "sales by product"
+      ],
+      "common_filters": [
+        "productCode",
+        "productName",
+        "productLine",
+        "productScale",
+        "productVendor",
+        "quantityInStock",
+        "buyPrice",
+        "MSRP"
+      ],
+      "common_groupings": [
+        "productLine",
+        "productVendor",
+        "productScale",
+        "stock bands",
+        "price bands"
+      ],
+      "table_notes": [
+        "Actual quantity sold and sale price are in orderdetails.",
+        "Potential unit margin can be estimated as MSRP minus buyPrice; realized unit margin uses priceEach minus buyPrice.",
+        "A product with no orderdetails has no recorded sales in the sample period."
+      ],
+      "columns": [
+        {
+          "name": "productCode",
+          "data_type": "varchar(15)",
+          "nullable": false,
+          "key_role": "Primary key",
+          "business_meaning": "Unique product/SKU code.",
+          "semantic_role": "identifier",
+          "synonyms_and_user_phrases": [
+            "product id",
+            "SKU",
+            "item code",
+            "model code"
+          ],
+          "representative_values": [
+            "S10_1678",
+            "S18_1749",
+            "S700_4002"
+          ],
+          "aggregation_rule": "Count distinct for product counts; do not sum.",
+          "filter_guidance": "Use exact text matching; preserve underscores and prefixes.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Join to orderdetails.productCode.",
+          "cautions": []
+        },
+        {
+          "name": "productName",
+          "data_type": "varchar(70)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Display name of the scale model product.",
+          "semantic_role": "entity name",
+          "synonyms_and_user_phrases": [
+            "product name",
+            "model name",
+            "item name"
+          ],
+          "representative_values": [
+            "1968 Ford Mustang",
+            "The Titanic",
+            "2003 Harley-Davidson Eagle Drag Bike"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Use case-insensitive exact or contains matching; product names may include years and punctuation.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "productLine",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Foreign key",
+          "business_meaning": "Product category to which the product belongs.",
+          "semantic_role": "category relationship key",
+          "synonyms_and_user_phrases": [
+            "product line",
+            "category",
+            "vehicle type"
+          ],
+          "representative_values": [
+            "Classic Cars",
+            "Ships",
+            "Planes"
+          ],
+          "aggregation_rule": "Group or count.",
+          "filter_guidance": "Use exact known product-line values or join to productlines for descriptions.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Join to productlines.productLine.",
+          "cautions": []
+        },
+        {
+          "name": "productScale",
+          "data_type": "varchar(10)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Scale ratio of the physical model.",
+          "semantic_role": "product attribute",
+          "synonyms_and_user_phrases": [
+            "scale",
+            "model scale",
+            "size ratio"
+          ],
+          "representative_values": [
+            "1:10",
+            "1:18",
+            "1:72",
+            "1:700"
+          ],
+          "aggregation_rule": "Group or count; do not sum as text.",
+          "filter_guidance": "Treat as a categorical string unless explicitly parsed into a denominator.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": [
+            "Lexicographic ordering is not the same as numeric scale ordering."
+          ]
+        },
+        {
+          "name": "productVendor",
+          "data_type": "varchar(50)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Vendor or manufacturer name stored directly on the product.",
+          "semantic_role": "organization name",
+          "synonyms_and_user_phrases": [
+            "vendor",
+            "manufacturer",
+            "supplier",
+            "brand"
+          ],
+          "representative_values": [
+            "Welly Diecast Productions",
+            "Second Gear Diecast",
+            "Unimax Art Galleries"
+          ],
+          "aggregation_rule": "Group or count.",
+          "filter_guidance": "Use case-insensitive text matching.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": [
+            "There is no separate vendor table or vendor identifier."
+          ]
+        },
+        {
+          "name": "productDescription",
+          "data_type": "text",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Long text describing product features and characteristics.",
+          "semantic_role": "unstructured descriptive text",
+          "synonyms_and_user_phrases": [
+            "description",
+            "features",
+            "product details"
+          ],
+          "representative_values": [
+            "Detailed product feature paragraph"
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Use contains/full-text semantics for feature searches; avoid returning the entire text unless requested.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "quantityInStock",
+          "data_type": "smallint(6)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Current inventory quantity snapshot for the product.",
+          "semantic_role": "inventory measure",
+          "synonyms_and_user_phrases": [
+            "stock",
+            "inventory",
+            "units in stock",
+            "available quantity"
+          ],
+          "representative_values": [
+            68,
+            3252,
+            9997
+          ],
+          "aggregation_rule": "Additive across different products for a current total-unit snapshot, but not across time because no history exists.",
+          "filter_guidance": "Use numeric thresholds for low-stock or high-stock questions.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": [
+            "Not historical stock at order date.",
+            "No reserved or committed inventory field exists."
+          ]
+        },
+        {
+          "name": "buyPrice",
+          "data_type": "decimal(10,2)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Unit purchase/cost price of the product.",
+          "semantic_role": "monetary semi-additive measure",
+          "synonyms_and_user_phrases": [
+            "cost",
+            "buying price",
+            "purchase price",
+            "unit cost"
+          ],
+          "representative_values": [
+            "31.92",
+            "95.59",
+            "103.42"
+          ],
+          "aggregation_rule": "Average or compare across products; multiply by quantities for estimated cost or inventory cost value.",
+          "filter_guidance": "Use numeric comparisons.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": [
+            "Static product-level cost, not a historical cost captured on each order line.",
+            "Currency code is not stored."
+          ]
+        },
+        {
+          "name": "MSRP",
+          "data_type": "decimal(10,2)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Manufacturer’s suggested retail/list price per unit.",
+          "semantic_role": "monetary semi-additive measure",
+          "synonyms_and_user_phrases": [
+            "MSRP",
+            "list price",
+            "retail price",
+            "suggested price"
+          ],
+          "representative_values": [
+            "79.80",
+            "147.74",
+            "207.80"
+          ],
+          "aggregation_rule": "Average or compare across products; multiply by quantities for list-price value.",
+          "filter_guidance": "Use numeric comparisons and exact capitalization of the column name.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": [
+            "MSRP is not actual sales revenue; actual unit sale price is orderdetails.priceEach."
+          ]
+        }
+      ]
+    },
+    {
+      "table_name": "orders",
+      "business_aliases": [
+        "order",
+        "sales order",
+        "purchase",
+        "order header"
+      ],
+      "purpose": "Stores sales-order header information including dates, status, comments, and customer.",
+      "row_grain": "One row per sales order.",
+      "standard_row_count": 326,
+      "primary_key": [
+        "orderNumber"
+      ],
+      "foreign_keys": [
+        {
+          "columns": [
+            "customerNumber"
+          ],
+          "references": "customers.customerNumber",
+          "optional": false
+        }
+      ],
+      "indexed_columns": [
+        "PRIMARY KEY (orderNumber)",
+        "INDEX (customerNumber)"
+      ],
+      "common_query_intents": [
+        "order lookup",
+        "order status",
+        "orders by customer",
+        "orders by date",
+        "shipping performance",
+        "open/unshipped orders",
+        "delayed orders"
+      ],
+      "common_filters": [
+        "orderNumber",
+        "customerNumber",
+        "orderDate",
+        "requiredDate",
+        "shippedDate",
+        "status",
+        "comments"
+      ],
+      "common_groupings": [
+        "customerNumber",
+        "status",
+        "order year/month",
+        "shipment year/month"
+      ],
+      "table_notes": [
+        "Order value is not stored in this table; derive it from orderdetails.",
+        "Status applies to the whole order, not individual line items.",
+        "Cancelled or disputed orders may still have orderdetail rows; include or exclude statuses according to the business question.",
+        "Order dates run from 2003-01-06 through 2005-05-31 in the standard dataset."
+      ],
+      "columns": [
+        {
+          "name": "orderNumber",
+          "data_type": "int(11)",
+          "nullable": false,
+          "key_role": "Primary key",
+          "business_meaning": "Unique sales-order identifier.",
+          "semantic_role": "identifier",
+          "synonyms_and_user_phrases": [
+            "order id",
+            "sales order number",
+            "order number"
+          ],
+          "representative_values": [
+            10100,
+            10300,
+            10425
+          ],
+          "aggregation_rule": "Count distinct for order counts; do not sum.",
+          "filter_guidance": "Use exact numeric matching.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Join to orderdetails.orderNumber.",
+          "cautions": []
+        },
+        {
+          "name": "orderDate",
+          "data_type": "date",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Date the customer placed the order.",
+          "semantic_role": "date",
+          "synonyms_and_user_phrases": [
+            "order date",
+            "purchase date",
+            "placed on",
+            "sales date"
+          ],
+          "representative_values": [
+            "2003-01-06",
+            "2004-01-01",
+            "2005-05-31"
+          ],
+          "aggregation_rule": "Group by year, quarter, month, or day.",
+          "filter_guidance": "Use this date for sales-order timing and period-based revenue unless the user specifies shipment or payment timing.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "requiredDate",
+          "data_type": "date",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Requested or required delivery/shipment date for the order.",
+          "semantic_role": "date",
+          "synonyms_and_user_phrases": [
+            "required date",
+            "due date",
+            "promised date",
+            "deadline"
+          ],
+          "representative_values": [
+            "2003-01-13",
+            "2005-06-07"
+          ],
+          "aggregation_rule": "Group by period or use date differences.",
+          "filter_guidance": "Compare with shippedDate to evaluate timeliness.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "shippedDate",
+          "data_type": "date",
+          "nullable": true,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Date the order was shipped.",
+          "semantic_role": "date",
+          "synonyms_and_user_phrases": [
+            "ship date",
+            "shipped on",
+            "dispatch date"
+          ],
+          "representative_values": [
+            "2003-01-10",
+            "2005-05-29"
+          ],
+          "aggregation_rule": "Group by shipment period or use date differences.",
+          "filter_guidance": "Use NULL to identify orders not yet shipped in the snapshot.",
+          "null_meaning": "Order has no recorded shipment date, usually because it is not shipped or is in a non-shipped status.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "status",
+          "data_type": "varchar(15)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Current order status.",
+          "semantic_role": "categorical status",
+          "synonyms_and_user_phrases": [
+            "order status",
+            "state",
+            "fulfillment status"
+          ],
+          "representative_values": [
+            "Shipped",
+            "In Process",
+            "Disputed",
+            "Cancelled",
+            "Resolved",
+            "On Hold"
+          ],
+          "aggregation_rule": "Group or count.",
+          "filter_guidance": "Use exact standard values. Do not infer status from dates when status is available.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "comments",
+          "data_type": "text",
+          "nullable": true,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Optional free-text notes about the order.",
+          "semantic_role": "unstructured text",
+          "synonyms_and_user_phrases": [
+            "order comment",
+            "notes",
+            "remarks",
+            "issue description"
+          ],
+          "representative_values": [
+            "Check on availability.",
+            "Difficult to negotiate with customer..."
+          ],
+          "aggregation_rule": "Do not aggregate.",
+          "filter_guidance": "Use contains/full-text style matching for issue or keyword searches.",
+          "null_meaning": "No order comment is recorded.",
+          "join_guidance": "Not a join key.",
+          "cautions": []
+        },
+        {
+          "name": "customerNumber",
+          "data_type": "int(11)",
+          "nullable": false,
+          "key_role": "Foreign key",
+          "business_meaning": "Customer who placed the order.",
+          "semantic_role": "relationship key",
+          "synonyms_and_user_phrases": [
+            "customer id",
+            "client id",
+            "buyer id",
+            "account number"
+          ],
+          "representative_values": [
+            103,
+            141,
+            496
+          ],
+          "aggregation_rule": "Group orders by customer; do not sum.",
+          "filter_guidance": "Use exact customer number or join to customers for names/geography.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Join to customers.customerNumber.",
+          "cautions": []
+        }
+      ]
+    },
+    {
+      "table_name": "orderdetails",
+      "business_aliases": [
+        "order detail",
+        "order line",
+        "line item",
+        "sales line",
+        "transaction line"
+      ],
+      "purpose": "Stores the products, quantities, actual unit prices, and line positions for each order.",
+      "row_grain": "One row per product line item within an order.",
+      "standard_row_count": 2996,
+      "primary_key": [
+        "orderNumber",
+        "productCode"
+      ],
+      "foreign_keys": [
+        {
+          "columns": [
+            "orderNumber"
+          ],
+          "references": "orders.orderNumber",
+          "optional": false
+        },
+        {
+          "columns": [
+            "productCode"
+          ],
+          "references": "products.productCode",
+          "optional": false
+        }
+      ],
+      "indexed_columns": [
+        "PRIMARY KEY (orderNumber, productCode)",
+        "INDEX (productCode)"
+      ],
+      "common_query_intents": [
+        "sales revenue",
+        "units sold",
+        "order value",
+        "product sales",
+        "line-item lookup",
+        "discount analysis",
+        "gross profit estimation"
+      ],
+      "common_filters": [
+        "orderNumber",
+        "productCode",
+        "quantityOrdered",
+        "priceEach",
+        "orderLineNumber"
+      ],
+      "common_groupings": [
+        "orderNumber",
+        "productCode",
+        "product line after join",
+        "customer after join",
+        "order period after join"
+      ],
+      "table_notes": [
+        "Line revenue equals quantityOrdered multiplied by priceEach.",
+        "The composite primary key means the same product appears at most once per order in the standard schema.",
+        "This table is the bridge between orders and products and creates a many-to-many business relationship.",
+        "Always join to orders before filtering by order date or status."
+      ],
+      "columns": [
+        {
+          "name": "orderNumber",
+          "data_type": "int(11)",
+          "nullable": false,
+          "key_role": "Primary-key component and foreign key",
+          "business_meaning": "Order containing the line item.",
+          "semantic_role": "identifier and relationship key",
+          "synonyms_and_user_phrases": [
+            "order id",
+            "sales order number"
+          ],
+          "representative_values": [
+            10100,
+            10250,
+            10425
+          ],
+          "aggregation_rule": "Group line measures by order; do not sum the identifier.",
+          "filter_guidance": "Use exact order number or join to orders.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Join to orders.orderNumber.",
+          "cautions": []
+        },
+        {
+          "name": "productCode",
+          "data_type": "varchar(15)",
+          "nullable": false,
+          "key_role": "Primary-key component and foreign key",
+          "business_meaning": "Product/SKU on the order line.",
+          "semantic_role": "identifier and relationship key",
+          "synonyms_and_user_phrases": [
+            "product id",
+            "SKU",
+            "item code"
+          ],
+          "representative_values": [
+            "S18_1749",
+            "S24_3969",
+            "S50_1392"
+          ],
+          "aggregation_rule": "Group line measures by product; do not sum the identifier.",
+          "filter_guidance": "Use exact text matching or join to products.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Join to products.productCode.",
+          "cautions": []
+        },
+        {
+          "name": "quantityOrdered",
+          "data_type": "int(11)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Number of units ordered for this product on this order.",
+          "semantic_role": "additive quantity measure",
+          "synonyms_and_user_phrases": [
+            "quantity",
+            "units ordered",
+            "units sold",
+            "sales volume"
+          ],
+          "representative_values": [
+            18,
+            30,
+            50
+          ],
+          "aggregation_rule": "Additive across line items when the selected order statuses and date scope are appropriate.",
+          "filter_guidance": "Use numeric thresholds and aggregate by order, product, customer, date, or category as needed.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": [
+            "“Units sold” may need cancelled orders excluded depending on business intent."
+          ]
+        },
+        {
+          "name": "priceEach",
+          "data_type": "decimal(10,2)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Actual unit selling price charged on the order line.",
+          "semantic_role": "monetary unit measure",
+          "synonyms_and_user_phrases": [
+            "sale price",
+            "selling price",
+            "actual price",
+            "unit price",
+            "price charged"
+          ],
+          "representative_values": [
+            "35.29",
+            "136.00",
+            "214.30"
+          ],
+          "aggregation_rule": "Do not sum unit prices by themselves. Use weighted calculations or multiply by quantityOrdered for revenue.",
+          "filter_guidance": "Use numeric comparisons; compare with products.MSRP for discounts and products.buyPrice for realized margin.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": [
+            "This is transactional sale price, unlike products.MSRP and products.buyPrice."
+          ]
+        },
+        {
+          "name": "orderLineNumber",
+          "data_type": "smallint(6)",
+          "nullable": false,
+          "key_role": "Non-key attribute",
+          "business_meaning": "Display or sequence position of the line within the order.",
+          "semantic_role": "ordinal",
+          "synonyms_and_user_phrases": [
+            "line number",
+            "item sequence",
+            "order position"
+          ],
+          "representative_values": [
+            1,
+            3,
+            16
+          ],
+          "aggregation_rule": "Do not sum. May order lines within one order.",
+          "filter_guidance": "Filter only when the user explicitly asks for a specific line position.",
+          "null_meaning": "Not applicable; column is required.",
+          "join_guidance": "Not a join key.",
+          "cautions": [
+            "Not globally unique and not a business measure."
+          ]
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "relationship_id": "R1",
+      "parent": "offices.officeCode",
+      "child": "employees.officeCode",
+      "cardinality": "one office to many employees",
+      "child_optional": false,
+      "business_meaning": "Each employee works from one office; an office can employ multiple employees.",
+      "join_expression": "employees.officeCode = offices.officeCode",
+      "avoidance_note": "Do not infer customer office directly; reach it through the assigned sales representative."
+    },
+    {
+      "relationship_id": "R2",
+      "parent": "employees.employeeNumber",
+      "child": "employees.reportsTo",
+      "cardinality": "one manager to zero or many direct reports",
+      "child_optional": true,
+      "business_meaning": "Employees may report to another employee; the top-level employee has NULL reportsTo.",
+      "join_expression": "employee.reportsTo = manager.employeeNumber",
+      "avoidance_note": "Use distinct aliases for employee and manager roles."
+    },
+    {
+      "relationship_id": "R3",
+      "parent": "employees.employeeNumber",
+      "child": "customers.salesRepEmployeeNumber",
+      "cardinality": "one employee to zero or many assigned customers",
+      "child_optional": true,
+      "business_meaning": "A customer may be assigned to one sales representative; some customers are unassigned.",
+      "join_expression": "customers.salesRepEmployeeNumber = employees.employeeNumber",
+      "avoidance_note": "Use an outer join when unassigned customers must remain visible."
+    },
+    {
+      "relationship_id": "R4",
+      "parent": "customers.customerNumber",
+      "child": "orders.customerNumber",
+      "cardinality": "one customer to zero or many orders",
+      "child_optional": false,
+      "business_meaning": "Each order belongs to one customer; a customer may have no orders.",
+      "join_expression": "orders.customerNumber = customers.customerNumber",
+      "avoidance_note": "Use an outer join to find customers without orders."
+    },
+    {
+      "relationship_id": "R5",
+      "parent": "customers.customerNumber",
+      "child": "payments.customerNumber",
+      "cardinality": "one customer to zero or many payments",
+      "child_optional": false,
+      "business_meaning": "Each payment belongs to one customer; a customer may have no payments.",
+      "join_expression": "payments.customerNumber = customers.customerNumber",
+      "avoidance_note": "Payments are customer-level and cannot be linked directly to an individual order."
+    },
+    {
+      "relationship_id": "R6",
+      "parent": "orders.orderNumber",
+      "child": "orderdetails.orderNumber",
+      "cardinality": "one order to one or many line items",
+      "child_optional": false,
+      "business_meaning": "Each order line belongs to one order.",
+      "join_expression": "orderdetails.orderNumber = orders.orderNumber",
+      "avoidance_note": "Joining orders to details changes the grain from order to line item; count distinct orders when needed."
+    },
+    {
+      "relationship_id": "R7",
+      "parent": "products.productCode",
+      "child": "orderdetails.productCode",
+      "cardinality": "one product to zero or many order lines",
+      "child_optional": false,
+      "business_meaning": "Each order line references one product; products may have no recorded sales.",
+      "join_expression": "orderdetails.productCode = products.productCode",
+      "avoidance_note": "Use an outer join from products to find unsold products."
+    },
+    {
+      "relationship_id": "R8",
+      "parent": "productlines.productLine",
+      "child": "products.productLine",
+      "cardinality": "one product line to one or many products",
+      "child_optional": false,
+      "business_meaning": "Each product belongs to one product line.",
+      "join_expression": "products.productLine = productlines.productLine",
+      "avoidance_note": "Product-line name is both identifier and display label."
+    }
+  ],
+  "join_path_catalog": [
+    {
+      "path_id": "J1",
+      "intent": "Customer orders",
+      "path": [
+        "customers",
+        "orders"
+      ],
+      "keys": [
+        "customers.customerNumber = orders.customerNumber"
+      ],
+      "result_grain": "One row per order before further aggregation."
+    },
+    {
+      "path_id": "J2",
+      "intent": "Customer order lines and revenue",
+      "path": [
+        "customers",
+        "orders",
+        "orderdetails"
+      ],
+      "keys": [
+        "customers.customerNumber = orders.customerNumber",
+        "orders.orderNumber = orderdetails.orderNumber"
+      ],
+      "result_grain": "One row per order line."
+    },
+    {
+      "path_id": "J3",
+      "intent": "Customer products purchased",
+      "path": [
+        "customers",
+        "orders",
+        "orderdetails",
+        "products"
+      ],
+      "keys": [
+        "customers.customerNumber = orders.customerNumber",
+        "orders.orderNumber = orderdetails.orderNumber",
+        "orderdetails.productCode = products.productCode"
+      ],
+      "result_grain": "One row per customer-order-product line."
+    },
+    {
+      "path_id": "J4",
+      "intent": "Product-line sales",
+      "path": [
+        "orders",
+        "orderdetails",
+        "products",
+        "productlines"
+      ],
+      "keys": [
+        "orders.orderNumber = orderdetails.orderNumber",
+        "orderdetails.productCode = products.productCode",
+        "products.productLine = productlines.productLine"
+      ],
+      "result_grain": "One row per order line with product-line attributes."
+    },
+    {
+      "path_id": "J5",
+      "intent": "Sales-representative performance",
+      "path": [
+        "employees",
+        "customers",
+        "orders",
+        "orderdetails"
+      ],
+      "keys": [
+        "employees.employeeNumber = customers.salesRepEmployeeNumber",
+        "customers.customerNumber = orders.customerNumber",
+        "orders.orderNumber = orderdetails.orderNumber"
+      ],
+      "result_grain": "One row per order line attributed to the customer’s assigned representative."
+    },
+    {
+      "path_id": "J6",
+      "intent": "Office performance",
+      "path": [
+        "offices",
+        "employees",
+        "customers",
+        "orders",
+        "orderdetails"
+      ],
+      "keys": [
+        "offices.officeCode = employees.officeCode",
+        "employees.employeeNumber = customers.salesRepEmployeeNumber",
+        "customers.customerNumber = orders.customerNumber",
+        "orders.orderNumber = orderdetails.orderNumber"
+      ],
+      "result_grain": "One row per order line attributed through sales representative to office."
+    },
+    {
+      "path_id": "J7",
+      "intent": "Customer payments",
+      "path": [
+        "customers",
+        "payments"
+      ],
+      "keys": [
+        "customers.customerNumber = payments.customerNumber"
+      ],
+      "result_grain": "One row per payment."
+    },
+    {
+      "path_id": "J8",
+      "intent": "Customer ordered value versus paid value",
+      "path": [
+        "customer_order_aggregate",
+        "customer_payment_aggregate"
+      ],
+      "keys": [
+        "Aggregate orders/orderdetails by customer first",
+        "Aggregate payments by customer separately",
+        "Then join the two customer-level aggregates"
+      ],
+      "result_grain": "One row per customer.",
+      "critical_warning": "Do not join raw orderdetails and raw payments together before aggregation; that produces many-to-many row multiplication and inflated totals."
+    },
+    {
+      "path_id": "J9",
+      "intent": "Employee and manager",
+      "path": [
+        "employees as employee",
+        "employees as manager"
+      ],
+      "keys": [
+        "employee.reportsTo = manager.employeeNumber"
+      ],
+      "result_grain": "One row per employee with optional manager."
+    },
+    {
+      "path_id": "J10",
+      "intent": "Unsold products",
+      "path": [
+        "products",
+        "orderdetails"
+      ],
+      "keys": [
+        "products.productCode = orderdetails.productCode using an outer join from products"
+      ],
+      "result_grain": "One row per product before grouping or existence filtering."
+    }
+  ],
+  "metric_catalog": [
+    {
+      "metric_id": "M01",
+      "metric_name": "line_revenue",
+      "business_meaning": "Extended sales value of one order line.",
+      "natural_grain": "order line",
+      "required_fields": [
+        "orderdetails.quantityOrdered",
+        "orderdetails.priceEach"
+      ],
+      "formula_expression": "quantityOrdered × priceEach",
+      "recommended_date_basis": "orders.orderDate after joining orders",
+      "default_status_policy": "Include all statuses only when explicitly requested; for realized sales, normally exclude Cancelled and consider treatment of Disputed/On Hold.",
+      "cautions": [
+        "Currency code is not stored."
+      ]
+    },
+    {
+      "metric_id": "M02",
+      "metric_name": "order_value",
+      "business_meaning": "Total extended value of an order.",
+      "natural_grain": "order",
+      "required_fields": [
+        "orderdetails.orderNumber",
+        "quantityOrdered",
+        "priceEach"
+      ],
+      "formula_expression": "Sum of line_revenue for one orderNumber",
+      "recommended_date_basis": "orders.orderDate",
+      "default_status_policy": "Apply the user’s requested status scope.",
+      "cautions": [
+        "No stored order total exists."
+      ]
+    },
+    {
+      "metric_id": "M03",
+      "metric_name": "customer_ordered_value",
+      "business_meaning": "Total value ordered by a customer.",
+      "natural_grain": "customer",
+      "required_fields": [
+        "customers.customerNumber",
+        "orders.orderNumber",
+        "orderdetails.quantityOrdered",
+        "orderdetails.priceEach"
+      ],
+      "formula_expression": "Sum of line_revenue across the customer’s orders",
+      "recommended_date_basis": "orders.orderDate",
+      "default_status_policy": "Clarify whether cancelled/disputed/on-hold orders should count.",
+      "cautions": [
+        "This is ordered value, not amount paid or recognized accounting revenue."
+      ]
+    },
+    {
+      "metric_id": "M04",
+      "metric_name": "units_ordered",
+      "business_meaning": "Total units on selected order lines.",
+      "natural_grain": "selected grouping",
+      "required_fields": [
+        "orderdetails.quantityOrdered"
+      ],
+      "formula_expression": "Sum of quantityOrdered",
+      "recommended_date_basis": "orders.orderDate",
+      "default_status_policy": "Usually exclude Cancelled when the phrase is units sold; include all when the phrase is units ordered.",
+      "cautions": [
+        "Status is on orders, so join to orders before filtering."
+      ]
+    },
+    {
+      "metric_id": "M05",
+      "metric_name": "average_selling_price_weighted",
+      "business_meaning": "Average actual unit selling price weighted by units.",
+      "natural_grain": "selected grouping",
+      "required_fields": [
+        "quantityOrdered",
+        "priceEach"
+      ],
+      "formula_expression": "Sum(quantityOrdered × priceEach) ÷ Sum(quantityOrdered)",
+      "recommended_date_basis": "orders.orderDate",
+      "default_status_policy": "Use the same status scope in numerator and denominator.",
+      "cautions": [
+        "A simple average of priceEach is not unit-weighted."
+      ]
+    },
+    {
+      "metric_id": "M06",
+      "metric_name": "gross_profit_estimate",
+      "business_meaning": "Estimated profit using static product buyPrice as unit cost.",
+      "natural_grain": "selected grouping",
+      "required_fields": [
+        "quantityOrdered",
+        "priceEach",
+        "products.buyPrice"
+      ],
+      "formula_expression": "Sum(quantityOrdered × (priceEach − buyPrice))",
+      "recommended_date_basis": "orders.orderDate",
+      "default_status_policy": "Normally exclude Cancelled; make treatment of disputed/on-hold explicit.",
+      "cautions": [
+        "buyPrice is not captured historically per order line, so this is an estimate."
+      ]
+    },
+    {
+      "metric_id": "M07",
+      "metric_name": "gross_margin_percent_estimate",
+      "business_meaning": "Estimated gross profit as a percentage of sales value.",
+      "natural_grain": "selected grouping",
+      "required_fields": [
+        "line_revenue",
+        "gross_profit_estimate"
+      ],
+      "formula_expression": "gross_profit_estimate ÷ line_revenue × 100",
+      "recommended_date_basis": "orders.orderDate",
+      "default_status_policy": "Use the same status scope for revenue and profit.",
+      "cautions": [
+        "Protect against zero revenue."
+      ]
+    },
+    {
+      "metric_id": "M08",
+      "metric_name": "discount_amount_vs_msrp",
+      "business_meaning": "Difference between list-price value and actual line revenue.",
+      "natural_grain": "order line or grouping",
+      "required_fields": [
+        "quantityOrdered",
+        "products.MSRP",
+        "orderdetails.priceEach"
+      ],
+      "formula_expression": "quantityOrdered × (MSRP − priceEach)",
+      "recommended_date_basis": "orders.orderDate",
+      "default_status_policy": "Apply the user’s requested status scope.",
+      "cautions": [
+        "Negative values indicate priceEach above MSRP."
+      ]
+    },
+    {
+      "metric_id": "M09",
+      "metric_name": "discount_percent_vs_msrp",
+      "business_meaning": "Percent below MSRP for an order line.",
+      "natural_grain": "order line",
+      "required_fields": [
+        "products.MSRP",
+        "orderdetails.priceEach"
+      ],
+      "formula_expression": "(MSRP − priceEach) ÷ MSRP × 100",
+      "recommended_date_basis": "orders.orderDate",
+      "default_status_policy": "Status usually does not affect the unit calculation but affects included lines.",
+      "cautions": [
+        "Protect against zero MSRP, although standard data uses positive values."
+      ]
+    },
+    {
+      "metric_id": "M10",
+      "metric_name": "inventory_units",
+      "business_meaning": "Current units in stock across selected products.",
+      "natural_grain": "product or grouping",
+      "required_fields": [
+        "products.quantityInStock"
+      ],
+      "formula_expression": "Sum of quantityInStock",
+      "recommended_date_basis": "Current snapshot; no historical date basis",
+      "default_status_policy": "Not applicable.",
+      "cautions": [
+        "Do not trend over time because only one snapshot exists."
+      ]
+    },
+    {
+      "metric_id": "M11",
+      "metric_name": "inventory_cost_value",
+      "business_meaning": "Estimated current inventory value at product buy price.",
+      "natural_grain": "product or grouping",
+      "required_fields": [
+        "quantityInStock",
+        "buyPrice"
+      ],
+      "formula_expression": "Sum(quantityInStock × buyPrice)",
+      "recommended_date_basis": "Current snapshot",
+      "default_status_policy": "Not applicable.",
+      "cautions": [
+        "Currency code is not stored."
+      ]
+    },
+    {
+      "metric_id": "M12",
+      "metric_name": "inventory_list_value",
+      "business_meaning": "Estimated current inventory value at MSRP.",
+      "natural_grain": "product or grouping",
+      "required_fields": [
+        "quantityInStock",
+        "MSRP"
+      ],
+      "formula_expression": "Sum(quantityInStock × MSRP)",
+      "recommended_date_basis": "Current snapshot",
+      "default_status_policy": "Not applicable.",
+      "cautions": [
+        "This is not expected revenue and ignores discounts and sell-through."
+      ]
+    },
+    {
+      "metric_id": "M13",
+      "metric_name": "total_payments",
+      "business_meaning": "Total amount received from customers.",
+      "natural_grain": "customer or time period",
+      "required_fields": [
+        "payments.amount"
+      ],
+      "formula_expression": "Sum of amount",
+      "recommended_date_basis": "payments.paymentDate",
+      "default_status_policy": "Not applicable to order status.",
+      "cautions": [
+        "Payments are not allocated to specific orders."
+      ]
+    },
+    {
+      "metric_id": "M14",
+      "metric_name": "average_payment_size",
+      "business_meaning": "Average amount per payment transaction.",
+      "natural_grain": "customer or grouping",
+      "required_fields": [
+        "payments.amount",
+        "payments.checkNumber"
+      ],
+      "formula_expression": "Average amount across payment rows",
+      "recommended_date_basis": "payments.paymentDate",
+      "default_status_policy": "Not applicable.",
+      "cautions": [
+        "Different from average paid per customer."
+      ]
+    },
+    {
+      "metric_id": "M15",
+      "metric_name": "customer_balance_proxy",
+      "business_meaning": "Difference between total ordered value and total payments for a matched scope.",
+      "natural_grain": "customer",
+      "required_fields": [
+        "customer_ordered_value",
+        "total_payments"
+      ],
+      "formula_expression": "customer_ordered_value − total_payments",
+      "recommended_date_basis": "Use aligned date windows or lifetime scope on both sides",
+      "default_status_policy": "Order-side status policy must be explicit.",
+      "cautions": [
+        "This is a proxy, not an accounting accounts-receivable balance.",
+        "Payment allocation and opening balances are absent.",
+        "Aggregate each side separately before joining."
+      ]
+    },
+    {
+      "metric_id": "M16",
+      "metric_name": "order_count",
+      "business_meaning": "Number of distinct orders.",
+      "natural_grain": "selected grouping",
+      "required_fields": [
+        "orders.orderNumber"
+      ],
+      "formula_expression": "Count distinct orderNumber",
+      "recommended_date_basis": "orders.orderDate unless another date is requested",
+      "default_status_policy": "Apply requested status scope.",
+      "cautions": [
+        "After joining orderdetails, never use raw row count for order count."
+      ]
+    },
+    {
+      "metric_id": "M17",
+      "metric_name": "average_order_value",
+      "business_meaning": "Average order total.",
+      "natural_grain": "selected grouping",
+      "required_fields": [
+        "order_value",
+        "orders.orderNumber"
+      ],
+      "formula_expression": "Sum of order values ÷ count of distinct orders",
+      "recommended_date_basis": "orders.orderDate",
+      "default_status_policy": "Use a consistent status scope.",
+      "cautions": [
+        "Compute order totals first or use mathematically equivalent grouped logic."
+      ]
+    },
+    {
+      "metric_id": "M18",
+      "metric_name": "fulfillment_days",
+      "business_meaning": "Days from order placement to shipment.",
+      "natural_grain": "shipped order",
+      "required_fields": [
+        "orders.orderDate",
+        "orders.shippedDate"
+      ],
+      "formula_expression": "shippedDate − orderDate in days",
+      "recommended_date_basis": "orders.orderDate or shippedDate depending the user’s wording",
+      "default_status_policy": "Only rows with a non-null shippedDate.",
+      "cautions": [
+        "Cancelled or unresolved orders may have no shippedDate."
+      ]
+    },
+    {
+      "metric_id": "M19",
+      "metric_name": "days_early_or_late",
+      "business_meaning": "Difference between actual shipment date and required date.",
+      "natural_grain": "shipped order",
+      "required_fields": [
+        "orders.requiredDate",
+        "orders.shippedDate"
+      ],
+      "formula_expression": "shippedDate − requiredDate in days; positive is late, zero is on date, negative is early",
+      "recommended_date_basis": "orders.shippedDate",
+      "default_status_policy": "Only rows with a non-null shippedDate.",
+      "cautions": [
+        "Define the sign convention clearly in labels."
+      ]
+    },
+    {
+      "metric_id": "M20",
+      "metric_name": "on_time_shipment_rate",
+      "business_meaning": "Share of shipped orders shipped on or before requiredDate.",
+      "natural_grain": "selected grouping",
+      "required_fields": [
+        "requiredDate",
+        "shippedDate",
+        "orderNumber"
+      ],
+      "formula_expression": "Count of shipped orders where shippedDate ≤ requiredDate ÷ count of shipped orders",
+      "recommended_date_basis": "orders.shippedDate",
+      "default_status_policy": "Exclude orders without shippedDate from the denominator unless the user defines a broader service-level metric.",
+      "cautions": [
+        "Report denominator definition."
+      ]
+    },
+    {
+      "metric_id": "M21",
+      "metric_name": "customer_credit_utilization_proxy",
+      "business_meaning": "Ordered-value proxy relative to credit limit.",
+      "natural_grain": "customer",
+      "required_fields": [
+        "customer_ordered_value",
+        "customers.creditLimit"
+      ],
+      "formula_expression": "customer_ordered_value ÷ creditLimit × 100",
+      "recommended_date_basis": "Aligned order period or lifetime",
+      "default_status_policy": "Order status scope must be explicit.",
+      "cautions": [
+        "Not available credit and not accounting utilization.",
+        "Protect against zero or NULL creditLimit."
+      ]
+    },
+    {
+      "metric_id": "M22",
+      "metric_name": "product_sell_through_proxy",
+      "business_meaning": "Historical units ordered relative to current stock snapshot.",
+      "natural_grain": "product",
+      "required_fields": [
+        "sum quantityOrdered",
+        "quantityInStock"
+      ],
+      "formula_expression": "units_ordered ÷ (units_ordered + current quantityInStock) × 100",
+      "recommended_date_basis": "Orders over selected historical period plus current stock snapshot",
+      "default_status_policy": "Usually exclude Cancelled for units sold.",
+      "cautions": [
+        "Not true sell-through because historical opening inventory and replenishments are absent."
+      ]
+    }
+  ],
+  "query_intent_routing": [
+    {
+      "intent": "Find customer details",
+      "primary_tables": [
+        "customers"
+      ],
+      "optional_tables": [
+        "employees"
+      ],
+      "must_retrieve": [
+        "customers table metadata"
+      ],
+      "notes": "Join employees only when sales representative details are requested."
+    },
+    {
+      "intent": "Find order details or status",
+      "primary_tables": [
+        "orders"
+      ],
+      "optional_tables": [
+        "customers",
+        "orderdetails",
+        "products"
+      ],
+      "must_retrieve": [
+        "orders metadata",
+        "status values"
+      ],
+      "notes": "Use orderdetails only for products, quantities, or value."
+    },
+    {
+      "intent": "Sales/revenue analysis",
+      "primary_tables": [
+        "orders",
+        "orderdetails"
+      ],
+      "optional_tables": [
+        "customers",
+        "products",
+        "productlines",
+        "employees",
+        "offices"
+      ],
+      "must_retrieve": [
+        "M01 line_revenue",
+        "status policy",
+        "orderDate semantics"
+      ],
+      "notes": "Revenue is derived; it is not stored in orders."
+    },
+    {
+      "intent": "Product performance",
+      "primary_tables": [
+        "products",
+        "orderdetails",
+        "orders"
+      ],
+      "optional_tables": [
+        "productlines"
+      ],
+      "must_retrieve": [
+        "products metadata",
+        "orderdetails metadata",
+        "status policy"
+      ],
+      "notes": "Use orderDate/status from orders."
+    },
+    {
+      "intent": "Inventory analysis",
+      "primary_tables": [
+        "products"
+      ],
+      "optional_tables": [
+        "productlines"
+      ],
+      "must_retrieve": [
+        "quantityInStock caveat"
+      ],
+      "notes": "Current snapshot only."
+    },
+    {
+      "intent": "Payment analysis",
+      "primary_tables": [
+        "payments"
+      ],
+      "optional_tables": [
+        "customers"
+      ],
+      "must_retrieve": [
+        "payments metadata",
+        "paymentDate semantics"
+      ],
+      "notes": "Do not bring in orders unless comparing customer-level aggregates."
+    },
+    {
+      "intent": "Customer balance or outstanding amount",
+      "primary_tables": [
+        "customers",
+        "orders",
+        "orderdetails",
+        "payments"
+      ],
+      "optional_tables": [],
+      "must_retrieve": [
+        "J8 separate aggregation rule",
+        "M15 customer_balance_proxy"
+      ],
+      "notes": "This is a proxy, not a precise accounts-receivable balance."
+    },
+    {
+      "intent": "Sales representative performance",
+      "primary_tables": [
+        "employees",
+        "customers",
+        "orders",
+        "orderdetails"
+      ],
+      "optional_tables": [
+        "offices"
+      ],
+      "must_retrieve": [
+        "J5",
+        "unassigned-customer caveat"
+      ],
+      "notes": "Attribute orders through the customer’s assigned sales representative."
+    },
+    {
+      "intent": "Office or territory performance",
+      "primary_tables": [
+        "offices",
+        "employees",
+        "customers",
+        "orders",
+        "orderdetails"
+      ],
+      "optional_tables": [],
+      "must_retrieve": [
+        "J6",
+        "territory semantics"
+      ],
+      "notes": "Office is inferred through sales representative assignment."
+    },
+    {
+      "intent": "Employee hierarchy",
+      "primary_tables": [
+        "employees"
+      ],
+      "optional_tables": [],
+      "must_retrieve": [
+        "R2 self-reference"
+      ],
+      "notes": "Use aliases for employee and manager roles."
+    },
+    {
+      "intent": "Late or on-time shipments",
+      "primary_tables": [
+        "orders"
+      ],
+      "optional_tables": [
+        "customers"
+      ],
+      "must_retrieve": [
+        "M19",
+        "M20",
+        "shippedDate null semantics"
+      ],
+      "notes": "Only shipped orders have a measurable actual shipment date."
+    },
+    {
+      "intent": "Customers with no orders/payments",
+      "primary_tables": [
+        "customers"
+      ],
+      "optional_tables": [
+        "orders",
+        "payments"
+      ],
+      "must_retrieve": [
+        "outer-join guidance"
+      ],
+      "notes": "Use existence/anti-join semantics; do not use inner joins."
+    },
+    {
+      "intent": "Products never ordered",
+      "primary_tables": [
+        "products",
+        "orderdetails"
+      ],
+      "optional_tables": [
+        "productlines"
+      ],
+      "must_retrieve": [
+        "J10"
+      ],
+      "notes": "Use products as the preserving side."
+    },
+    {
+      "intent": "Discount analysis",
+      "primary_tables": [
+        "orderdetails",
+        "products",
+        "orders"
+      ],
+      "optional_tables": [],
+      "must_retrieve": [
+        "M08",
+        "M09"
+      ],
+      "notes": "Compare actual priceEach with MSRP."
+    },
+    {
+      "intent": "Profit or margin analysis",
+      "primary_tables": [
+        "orderdetails",
+        "products",
+        "orders"
+      ],
+      "optional_tables": [
+        "customers",
+        "productlines"
+      ],
+      "must_retrieve": [
+        "M06",
+        "M07",
+        "buyPrice historical-cost caveat"
+      ],
+      "notes": "Results are estimates because buyPrice is static product metadata."
+    }
+  ],
+  "ambiguity_resolution_rules": [
+    {
+      "user_term": "sales",
+      "default_interpretation": "Sum of quantityOrdered × priceEach using orders.orderDate.",
+      "clarify_when": "The user might mean units, payments, shipped revenue, or only completed orders."
+    },
+    {
+      "user_term": "revenue",
+      "default_interpretation": "Derived line revenue, not payments.",
+      "clarify_when": "The user needs recognized/accounting revenue or a specific status policy."
+    },
+    {
+      "user_term": "paid",
+      "default_interpretation": "payments.amount using paymentDate.",
+      "clarify_when": "The user asks which specific order was paid."
+    },
+    {
+      "user_term": "order total",
+      "default_interpretation": "Sum of quantityOrdered × priceEach per order.",
+      "clarify_when": "Taxes, shipping, or discounts outside line prices are expected; those fields do not exist."
+    },
+    {
+      "user_term": "price",
+      "default_interpretation": "Use priceEach for actual sold price, MSRP for list price, and buyPrice for unit cost.",
+      "clarify_when": "The wording does not indicate which price concept is intended."
+    },
+    {
+      "user_term": "profit",
+      "default_interpretation": "Estimated gross profit using priceEach minus current buyPrice.",
+      "clarify_when": "The user expects operating profit, tax, shipping, or historical cost."
+    },
+    {
+      "user_term": "customer balance",
+      "default_interpretation": "Customer ordered value minus payments as a proxy.",
+      "clarify_when": "Precise accounts receivable is required."
+    },
+    {
+      "user_term": "top customer",
+      "default_interpretation": "Rank by ordered value.",
+      "clarify_when": "The user may mean payments, order count, units, or credit limit."
+    },
+    {
+      "user_term": "best product",
+      "default_interpretation": "No universal default; choose only when the user states revenue, units, profit, order count, or margin.",
+      "clarify_when": "Always when the metric is absent."
+    },
+    {
+      "user_term": "region",
+      "default_interpretation": "Customer geography when discussing customers; office territory when discussing organization or sales offices.",
+      "clarify_when": "Both are plausible."
+    },
+    {
+      "user_term": "salesperson",
+      "default_interpretation": "employees joined through customers.salesRepEmployeeNumber.",
+      "clarify_when": "The user means managers or all employees."
+    },
+    {
+      "user_term": "open orders",
+      "default_interpretation": "Orders with status In Process or On Hold and/or shippedDate NULL.",
+      "clarify_when": "The user’s organization uses a different status definition."
+    },
+    {
+      "user_term": "delayed order",
+      "default_interpretation": "shippedDate greater than requiredDate for shipped orders.",
+      "clarify_when": "Unshipped past-due orders should also count."
+    },
+    {
+      "user_term": "inventory value",
+      "default_interpretation": "quantityInStock × buyPrice.",
+      "clarify_when": "The user may want MSRP/list value."
+    },
+    {
+      "user_term": "year/month",
+      "default_interpretation": "Use orderDate for sales/order questions and paymentDate for payment questions.",
+      "clarify_when": "Shipment timing is explicitly central."
+    }
+  ],
+  "business_rules_and_constraints": [
+    "Every order belongs to exactly one customer.",
+    "Every order line belongs to exactly one order and one product.",
+    "Every product belongs to exactly one product line.",
+    "Every employee belongs to one office.",
+    "A customer may have no assigned sales representative.",
+    "An employee may have no manager only at the top of the hierarchy.",
+    "A customer may have zero, one, or many orders and payments.",
+    "A product may have zero or many order lines.",
+    "orderdetails and payments use composite primary keys.",
+    "Foreign-key delete/update cascade behavior is not explicitly declared; do not assume cascade operations.",
+    "shippedDate and comments can be NULL.",
+    "addressLine2, state, postalCode, salesRepEmployeeNumber, and creditLimit may be NULL in customers.",
+    "addressLine2 and state may be NULL in offices.",
+    "htmlDescription and image are normally NULL in the standard productlines data.",
+    "order status values in the standard data are Shipped, In Process, Disputed, Cancelled, Resolved, and On Hold.",
+    "productLine values in the standard data are Classic Cars, Vintage Cars, Motorcycles, Trucks and Buses, Planes, Ships, and Trains.",
+    "office territory values are NA, EMEA, Japan, and APAC.",
+    "orderLineNumber restarts within each order and is not globally unique.",
+    "The same product cannot appear twice in the same order under the composite primary key.",
+    "Monetary values contain two decimal places but no currency code.",
+    "Dates are DATE values with no time-of-day or timezone.",
+    "Text collation is case-insensitive in the source definition, but exact stored values should still be preferred for controlled categories."
+  ],
+  "sql_generation_guardrails": [
+    "Generate read-only retrieval statements by default unless the user explicitly asks to modify data.",
+    "Never invent a table, column, relationship, status, metric, or currency.",
+    "Use only exact schema names and correct key relationships.",
+    "Select the minimum necessary tables and columns.",
+    "Avoid SELECT-all behavior unless the user explicitly requests every column.",
+    "Before aggregation, identify the current row grain and the desired output grain.",
+    "Use count distinct for order or customer counts after joining to lower-grain tables.",
+    "Aggregate order data and payment data separately before comparing them at customer level.",
+    "Use actual sale price from orderdetails.priceEach for sales calculations.",
+    "Use products.MSRP only for list-price or discount comparisons.",
+    "Use products.buyPrice only as a static cost estimate and label profit/margin results as estimated.",
+    "Apply date filters to the date that matches the business question: orderDate, shippedDate, requiredDate, or paymentDate.",
+    "Make order-status inclusion/exclusion explicit for revenue, units sold, profit, and order counts.",
+    "Preserve rows with NULL relationships when the question asks for missing, unassigned, unsold, unpaid, or no-order entities.",
+    "Treat text identifiers and postal/phone fields as strings.",
+    "Do not link payments directly to orders.",
+    "Do not claim historical inventory, returns, refunds, taxes, shipping charges, net income, or exact accounts receivable from this schema.",
+    "Use clear business aliases in the result so derived values are understandable.",
+    "If a request is ambiguous and materially changes the metric or scope, ask for clarification rather than guessing.",
+    "When a safe default is possible, state the selected interpretation in the response metadata or explanation."
+  ],
+  "rag_retrieval_design": {
+    "recommended_strategy": "Hybrid retrieval using semantic embeddings plus exact keyword/identifier matching. Retrieve table chunks, relationship chunks, and metric/rule chunks together.",
+    "recommended_top_k": "Start with 5 to 8 chunks, then rerank for schema relevance and relationship coverage.",
+    "chunking_principles": [
+      "Keep each table definition and its columns in one coherent chunk or a table-summary chunk plus column-detail chunk.",
+      "Keep relationship and join-path guidance separate from individual table chunks so multi-table questions retrieve it.",
+      "Keep metric definitions in domain groups such as sales, payments, inventory, and fulfillment.",
+      "Keep ambiguity and guardrail rules in a dedicated policy chunk.",
+      "Include exact table names, column names, aliases, and user synonyms in every relevant chunk.",
+      "Attach neighboring chunk identifiers so the retriever can expand context when a query spans multiple entities."
+    ],
+    "recommended_chunks": [
+      {
+        "chunk_id": "CM-00-OVERVIEW",
+        "title": "Database overview and global limitations",
+        "tags": [
+          "classicmodels",
+          "overview",
+          "tables",
+          "limitations",
+          "currency",
+          "date range"
+        ],
+        "neighbors": [
+          "CM-01-RELATIONSHIPS",
+          "CM-10-GUARDRAILS"
+        ]
+      },
+      {
+        "chunk_id": "CM-01-RELATIONSHIPS",
+        "title": "Foreign keys, cardinalities, and join paths",
+        "tags": [
+          "joins",
+          "foreign keys",
+          "relationships",
+          "grain",
+          "cardinality"
+        ],
+        "neighbors": [
+          "CM-00-OVERVIEW",
+          "CM-02-CUSTOMERS",
+          "CM-05-ORDERS",
+          "CM-06-ORDERDETAILS"
+        ]
+      },
+      {
+        "chunk_id": "CM-02-CUSTOMERS",
+        "title": "Customers table metadata",
+        "tags": [
+          "customers",
+          "clients",
+          "accounts",
+          "credit limit",
+          "sales rep",
+          "geography"
+        ],
+        "neighbors": [
+          "CM-03-EMPLOYEES",
+          "CM-05-ORDERS",
+          "CM-07-PAYMENTS"
+        ]
+      },
+      {
+        "chunk_id": "CM-03-EMPLOYEES",
+        "title": "Employees and hierarchy metadata",
+        "tags": [
+          "employees",
+          "sales reps",
+          "manager",
+          "reportsTo",
+          "jobTitle"
+        ],
+        "neighbors": [
+          "CM-04-OFFICES",
+          "CM-02-CUSTOMERS"
+        ]
+      },
+      {
+        "chunk_id": "CM-04-OFFICES",
+        "title": "Offices and territory metadata",
+        "tags": [
+          "offices",
+          "branches",
+          "territory",
+          "country",
+          "city"
+        ],
+        "neighbors": [
+          "CM-03-EMPLOYEES",
+          "CM-09-METRICS-ORG"
+        ]
+      },
+      {
+        "chunk_id": "CM-05-ORDERS",
+        "title": "Orders table and status/date semantics",
+        "tags": [
+          "orders",
+          "status",
+          "orderDate",
+          "requiredDate",
+          "shippedDate",
+          "comments"
+        ],
+        "neighbors": [
+          "CM-06-ORDERDETAILS",
+          "CM-02-CUSTOMERS",
+          "CM-08-METRICS-SALES"
+        ]
+      },
+      {
+        "chunk_id": "CM-06-ORDERDETAILS",
+        "title": "Order line metadata and revenue grain",
+        "tags": [
+          "orderdetails",
+          "line items",
+          "quantityOrdered",
+          "priceEach",
+          "revenue"
+        ],
+        "neighbors": [
+          "CM-05-ORDERS",
+          "CM-11-PRODUCTS",
+          "CM-08-METRICS-SALES"
+        ]
+      },
+      {
+        "chunk_id": "CM-07-PAYMENTS",
+        "title": "Payments table and payment limitations",
+        "tags": [
+          "payments",
+          "amount",
+          "checkNumber",
+          "paymentDate",
+          "paid"
+        ],
+        "neighbors": [
+          "CM-02-CUSTOMERS",
+          "CM-09-METRICS-PAYMENTS"
+        ]
+      },
+      {
+        "chunk_id": "CM-08-METRICS-SALES",
+        "title": "Sales, revenue, discount, and margin metrics",
+        "tags": [
+          "sales",
+          "revenue",
+          "order value",
+          "profit",
+          "margin",
+          "discount",
+          "average order value"
+        ],
+        "neighbors": [
+          "CM-05-ORDERS",
+          "CM-06-ORDERDETAILS",
+          "CM-11-PRODUCTS"
+        ]
+      },
+      {
+        "chunk_id": "CM-09-METRICS-PAYMENTS-ORG",
+        "title": "Payment, balance, employee, office, and fulfillment metrics",
+        "tags": [
+          "payments",
+          "balance",
+          "sales rep performance",
+          "office performance",
+          "on time",
+          "late"
+        ],
+        "neighbors": [
+          "CM-07-PAYMENTS",
+          "CM-03-EMPLOYEES",
+          "CM-04-OFFICES",
+          "CM-05-ORDERS"
+        ]
+      },
+      {
+        "chunk_id": "CM-10-GUARDRAILS",
+        "title": "Ambiguity rules and SQL-generation guardrails",
+        "tags": [
+          "ambiguity",
+          "guardrails",
+          "no hallucination",
+          "status policy",
+          "date basis",
+          "grain"
+        ],
+        "neighbors": [
+          "CM-00-OVERVIEW",
+          "CM-01-RELATIONSHIPS"
+        ]
+      },
+      {
+        "chunk_id": "CM-11-PRODUCTS",
+        "title": "Products table metadata",
+        "tags": [
+          "products",
+          "SKU",
+          "inventory",
+          "MSRP",
+          "buyPrice",
+          "vendor",
+          "scale"
+        ],
+        "neighbors": [
+          "CM-12-PRODUCTLINES",
+          "CM-06-ORDERDETAILS",
+          "CM-08-METRICS-SALES"
+        ]
+      },
+      {
+        "chunk_id": "CM-12-PRODUCTLINES",
+        "title": "Product lines and category descriptions",
+        "tags": [
+          "productlines",
+          "category",
+          "Classic Cars",
+          "Motorcycles",
+          "Planes",
+          "Ships",
+          "Trains"
+        ],
+        "neighbors": [
+          "CM-11-PRODUCTS"
+        ]
+      }
+    ],
+    "retrieval_query_expansion_examples": [
+      {
+        "user_phrase": "top clients by sales",
+        "expand_to": [
+          "customers",
+          "orders",
+          "orderdetails",
+          "customer_ordered_value",
+          "line_revenue",
+          "status policy"
+        ]
+      },
+      {
+        "user_phrase": "unpaid customers",
+        "expand_to": [
+          "customers",
+          "orders",
+          "orderdetails",
+          "payments",
+          "customer_balance_proxy",
+          "separate aggregation"
+        ]
+      },
+      {
+        "user_phrase": "best salesman",
+        "expand_to": [
+          "employees",
+          "customers.salesRepEmployeeNumber",
+          "orders",
+          "orderdetails",
+          "performance metric ambiguity"
+        ]
+      },
+      {
+        "user_phrase": "late deliveries",
+        "expand_to": [
+          "orders.requiredDate",
+          "orders.shippedDate",
+          "days_early_or_late",
+          "unshipped past due ambiguity"
+        ]
+      },
+      {
+        "user_phrase": "low stock classic cars",
+        "expand_to": [
+          "products.quantityInStock",
+          "products.productLine",
+          "Classic Cars",
+          "current inventory snapshot"
+        ]
+      }
+    ]
+  },
+  "data_quality_and_limitations": [
+    {
+      "issue": "Static sample dataset",
+      "impact": "Results are for learning/demo use and not current operational data."
+    },
+    {
+      "issue": "No currency code",
+      "impact": "Monetary results must not be labeled with a currency unless configured externally."
+    },
+    {
+      "issue": "No payment allocation to orders",
+      "impact": "Exact paid/unpaid status per order cannot be determined."
+    },
+    {
+      "issue": "No historical cost",
+      "impact": "Gross profit using buyPrice is an estimate based on current/static product cost."
+    },
+    {
+      "issue": "No inventory history",
+      "impact": "Inventory trends, stock at order date, and replenishment analysis are impossible."
+    },
+    {
+      "issue": "Nullable geography fields",
+      "impact": "NULL state/postal values may be normal for international addresses, not necessarily errors."
+    },
+    {
+      "issue": "Inconsistent text cleanliness",
+      "impact": "Some values may contain trailing spaces, punctuation variants, or spelling quirks; trim for display and cautious matching."
+    },
+    {
+      "issue": "Free-text comments/descriptions",
+      "impact": "Keyword searches may miss synonyms and can produce false positives; semantic retrieval can help."
+    },
+    {
+      "issue": "Status interpretation",
+      "impact": "Ordered, sold, shipped, and realized revenue are different concepts; status policy must be explicit."
+    },
+    {
+      "issue": "Attribution through assigned rep",
+      "impact": "Office and employee performance reflects customer assignment, not necessarily the person who processed each individual order."
+    },
+    {
+      "issue": "Product vendor denormalized",
+      "impact": "Vendor details beyond the vendor name cannot be queried."
+    },
+    {
+      "issue": "Legacy utf8 definition",
+      "impact": "The source uses MySQL utf8/utf8_general_ci; application-level ingestion should preserve text consistently."
+    }
+  ],
+  "business_glossary": [
+    {
+      "term": "Actual selling price",
+      "definition": "orderdetails.priceEach, the unit price charged on a specific order line."
+    },
+    {
+      "term": "Buy price",
+      "definition": "products.buyPrice, the product-level unit acquisition cost used for estimated margin."
+    },
+    {
+      "term": "MSRP",
+      "definition": "products.MSRP, the suggested/list price, not actual revenue."
+    },
+    {
+      "term": "Line revenue",
+      "definition": "quantityOrdered multiplied by priceEach."
+    },
+    {
+      "term": "Order value",
+      "definition": "Sum of line revenue across all lines of one order."
+    },
+    {
+      "term": "Customer ordered value",
+      "definition": "Sum of order values for a customer within the selected scope."
+    },
+    {
+      "term": "Payment total",
+      "definition": "Sum of payments.amount within the selected paymentDate scope."
+    },
+    {
+      "term": "Customer balance proxy",
+      "definition": "Ordered value minus payment total; not a formal accounting balance."
+    },
+    {
+      "term": "Sales representative",
+      "definition": "Employee referenced by customers.salesRepEmployeeNumber."
+    },
+    {
+      "term": "Office performance",
+      "definition": "Sales attributed to office through employee assignment and customer assignment."
+    },
+    {
+      "term": "Product line",
+      "definition": "One of seven product categories stored in productlines and products."
+    },
+    {
+      "term": "Open order",
+      "definition": "A business interpretation typically involving In Process or On Hold status and/or no shippedDate; definition should be confirmed."
+    },
+    {
+      "term": "On-time shipment",
+      "definition": "A shipped order with shippedDate on or before requiredDate."
+    },
+    {
+      "term": "Unassigned customer",
+      "definition": "A customer with NULL salesRepEmployeeNumber."
+    },
+    {
+      "term": "Unsold product",
+      "definition": "A product with no matching rows in orderdetails."
+    },
+    {
+      "term": "Current inventory",
+      "definition": "products.quantityInStock as a single present-state snapshot in the dataset."
+    }
+  ]
+}
